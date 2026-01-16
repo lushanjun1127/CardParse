@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>在线手机号码VCF批量导入工具 - VCardPro</title>
+    <meta name="keywords" content="手机号批量导入,vcf导入,Excel转vcf,VCF生成器,联系人导入,vcf解析"/>
+    <meta name="description" content="本工具可以将电话号码列表生成vcf格式，快速导入手机通讯录中，支持双向转换：从联系人列表生成VCF，或从VCF文件解析联系人！"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <header class="dashboard-header">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-address-card"></i>
+                    <h1>VCardPro</h1>
+                </div>
+                <div class="header-actions">
+                    <button id="demoBtn" class="btn btn-outline">
+                        <i class="fas fa-lightbulb"></i> 示例
+                    </button>
+                    <button id="clearBtn" class="btn btn-outline">
+                        <i class="fas fa-broom"></i> 清空
+                    </button>
+                </div>
+            </div>
+            <p class="subtitle">专业级VCF联系人批量生成工具，支持双向转换</p>
+        </header>
+
+        <div class="dashboard-main">
+            <div class="dashboard-panel left-panel">
+                <div class="panel-header">
+                    <h2><i class="fas fa-keyboard"></i> 输入数据</h2>
+                    <p>粘贴联系人信息，支持多种格式</p>
+                </div>
+                <div class="panel-content">
+                    <textarea 
+                        id="contactInput" 
+                        placeholder="张三 13812345678
+李四 13987654321
+13712345678 王五
+A0397 13612345679"></textarea>
+                    <div class="actions">
+                        <button id="parseBtn" class="btn btn-primary">
+                            <i class="fas fa-magic"></i> 解析数据
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dashboard-panel center-panel">
+                <div class="panel-header">
+                    <h2><i class="fas fa-users"></i> 联系人预览</h2>
+                    <div class="stats">
+                        <span id="contactCount">0 个联系人</span>
+                    </div>
+                </div>
+                <div class="panel-content">
+                    <div class="contact-stats">
+                        <div class="stat-card">
+                            <div class="stat-number" id="totalContacts">0</div>
+                            <div class="stat-label">总计</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="validContacts">0</div>
+                            <div class="stat-label">有效</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="invalidLines">0</div>
+                            <div class="stat-label">无效</div>
+                        </div>
+                    </div>
+                    <div class="contact-preview" id="contactPreview">
+                        <div class="empty-state">
+                            <i class="fas fa-user-friends"></i>
+                            <p>暂无联系人数据</p>
+                        </div>
+                    </div>
+                    <div class="actions">
+                        <button id="downloadBtn" class="btn btn-success" disabled>
+                            <i class="fas fa-download"></i> 下载VCF
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dashboard-panel right-panel">
+                <div class="panel-header">
+                    <h2><i class="fas fa-file-code"></i> VCF输出</h2>
+                    <p>生成或粘贴VCF内容</p>
+                </div>
+                <div class="panel-content">
+                    <textarea 
+                        id="vcfOutput" 
+                        placeholder="VCF内容将在此显示..."></textarea>
+                    <div class="actions">
+                        <button id="vcfParseBtn" class="btn btn-primary">
+                            <i class="fas fa-magic"></i> 解析VCF
+                        </button>
+                        <button id="copyBtn" class="btn btn-warning" disabled>
+                            <i class="fas fa-copy"></i> 复制
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="dashboard-footer">
+            <p>VCardPro &copy; 2023 - 专业VCF联系人生成工具 | 安全、便捷、高效</p>
+        </footer>
+    </div>
+
+    <div class="notification" id="notification">
+        <i class="fas fa-check-circle"></i>
+        <span id="notificationText">操作成功！</span>
+    </div>
+
+    <script src="js/vcard-generator.js"></script>
+    <script src="js/ui-controller.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            try {
+                const generator = new VCardGenerator();
+                const uiController = new UIController(generator);
+                
+                // 绑定演示按钮
+                document.getElementById('demoBtn').addEventListener('click', function() {
+                    try {
+                        document.getElementById('contactInput').value = 
+                            '张三 13812345678\n' +
+                            '李四 13987654321\n' +
+                            '王五 13712345678\n' +
+                            'A0397 13612345679\n' +
+                            'B0588 13512345670';
+                        uiController.handleParse();
+                        uiController.showNotification('已填入示例数据');
+                    } catch (error) {
+                        console.error('演示按钮点击事件错误:', error);
+                        uiController.showNotification('演示数据填充失败', 'error');
+                    }
+                });
+                
+                // 绑定清空按钮
+                document.getElementById('clearBtn').addEventListener('click', function() {
+                    try {
+                        uiController.handleClear();
+                    } catch (error) {
+                        console.error('清空按钮点击事件错误:', error);
+                        uiController.showNotification('清空操作失败', 'error');
+                    }
+                });
+                
+                // 绑定下载按钮
+                document.getElementById('downloadBtn').addEventListener('click', function() {
+                    try {
+                        uiController.handleDownload();
+                    } catch (error) {
+                        console.error('下载按钮点击事件错误:', error);
+                        uiController.showNotification('下载操作失败', 'error');
+                    }
+                });
+                
+                // 绑定复制按钮
+                document.getElementById('copyBtn').addEventListener('click', function() {
+                    try {
+                        uiController.handleCopy();
+                    } catch (error) {
+                        console.error('复制按钮点击事件错误:', error);
+                        uiController.showNotification('复制操作失败', 'error');
+                    }
+                });
+                
+                // 绑定解析按钮
+                document.getElementById('parseBtn').addEventListener('click', function() {
+                    try {
+                        uiController.handleParse();
+                    } catch (error) {
+                        console.error('解析按钮点击事件错误:', error);
+                        uiController.showNotification('解析操作失败', 'error');
+                    }
+                });
+                
+                // 绑定VCF解析按钮
+                document.getElementById('vcfParseBtn').addEventListener('click', function() {
+                    try {
+                        uiController.handleVCFParse();
+                    } catch (error) {
+                        console.error('VCF解析按钮点击事件错误:', error);
+                        uiController.showNotification('VCF解析操作失败', 'error');
+                    }
+                });
+                
+                // 添加键盘快捷键
+                document.getElementById('contactInput').addEventListener('keydown', function(e) {
+                    if (e.ctrlKey && e.key === 'Enter') {
+                        try {
+                            uiController.handleParse();
+                        } catch (error) {
+                            console.error('快捷键解析事件错误:', error);
+                            uiController.showNotification('快捷键解析操作失败', 'error');
+                        }
+                    }
+                });
+                
+                // 添加键盘快捷键到VCF输出区域
+                document.getElementById('vcfOutput').addEventListener('keydown', function(e) {
+                    if (e.ctrlKey && e.key === 'Enter') {
+                        try {
+                            uiController.handleVCFParse();
+                        } catch (error) {
+                            console.error('VCF区域快捷键事件错误:', error);
+                            uiController.showNotification('VCF区域快捷键操作失败', 'error');
+                        }
+                    }
+                });
+                
+                // 更新UI控制器以同步VCF输出
+                const originalUpdatePreview = uiController.updatePreview;
+                uiController.updatePreview = function() {
+                    try {
+                        originalUpdatePreview.call(this);
+                        
+                        // 更新VCF输出区域
+                        const vcfOutput = document.getElementById('vcfOutput');
+                        if (this.contacts && this.contacts.length > 0) {
+                            vcfOutput.value = generator.generateVCFContent(this.contacts);
+                            document.getElementById('copyBtn').disabled = false;
+                        } else {
+                            vcfOutput.value = '';
+                            document.getElementById('copyBtn').disabled = true;
+                        }
+                    } catch (error) {
+                        console.error('更新预览时发生错误:', error);
+                        uiController.showNotification('更新预览失败', 'error');
+                    }
+                };
+            } catch (error) {
+                console.error('页面初始化错误:', error);
+                alert('页面初始化失败，请刷新重试');
+            }
+        });
+    </script>
+</body>
+</html>
