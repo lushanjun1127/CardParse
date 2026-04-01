@@ -118,11 +118,18 @@ class UIController {
   async handleCopy() {
     try {
       await this.generator.copyToClipboard(this.contacts);
-      this.copyText.innerHTML = '<i class="fas fa-check"></i> 已复制!';
+      // 安全地更新按钮文本，避免innerHTML
+      this.copyText.innerHTML = '';
+      const checkIcon = document.createElement('i');
+      checkIcon.className = 'fas fa-check';
+      this.copyText.appendChild(checkIcon);
       this.showNotification('VCF内容已复制到剪贴板');
       
       setTimeout(() => {
-        this.copyText.innerHTML = '<i class="fas fa-copy"></i> 复制';
+        this.copyText.innerHTML = '';
+        const copyIcon = document.createElement('i');
+        copyIcon.className = 'fas fa-copy';
+        this.copyText.appendChild(copyIcon);
       }, 2000);
     } catch (error) {
       console.error('复制VCF内容时发生错误:', error);
@@ -136,12 +143,22 @@ class UIController {
   updatePreview() {
     try {
       if (this.contacts.length === 0) {
-        this.contactPreview.innerHTML = `
-          <div class="empty-state">
-            <i class="fas fa-user-friends"></i>
-            <p>暂无联系人数据</p>
-          </div>
-        `;
+        // 清空现有内容并添加空状态
+        this.contactPreview.innerHTML = ''; // 清空现有内容
+        
+        const emptyStateDiv = document.createElement('div');
+        emptyStateDiv.className = 'empty-state';
+        
+        const iconElement = document.createElement('i');
+        iconElement.className = 'fas fa-user-friends';
+        emptyStateDiv.appendChild(iconElement);
+        
+        const pElement = document.createElement('p');
+        pElement.textContent = '暂无联系人数据';
+        emptyStateDiv.appendChild(pElement);
+        
+        this.contactPreview.appendChild(emptyStateDiv);
+        
         this.contactCount.textContent = '0 个联系人';
         this.totalContacts.textContent = '0';
         this.validContacts.textContent = '0';
@@ -150,29 +167,55 @@ class UIController {
         return;
       }
 
-      let previewHTML = '';
+      // 清空现有预览内容
+      this.contactPreview.innerHTML = '';
+      
       this.contacts.forEach(contact => {
         // 对显示内容进行XSS防护
         const sanitizedName = this.escapeHtml(contact.name);
         const sanitizedPhone = this.escapeHtml(contact.phone);
         
-        previewHTML += `
-          <div class="contact-item">
-            <div class="contact-info">
-              <div class="avatar">${sanitizedName.charAt(0)}</div>
-              <div class="contact-details">
-                <h4>${sanitizedName}</h4>
-                <p>${sanitizedPhone}</p>
-              </div>
-            </div>
-            <div>
-              <i class="fas fa-phone" style="color: var(--success);"></i>
-            </div>
-          </div>
-        `;
+        // 创建联系人项元素
+        const contactItem = document.createElement('div');
+        contactItem.className = 'contact-item';
+        
+        // 创建联系人信息容器
+        const contactInfo = document.createElement('div');
+        contactInfo.className = 'contact-info';
+        contactItem.appendChild(contactInfo);
+        
+        // 创建头像元素
+        const avatar = document.createElement('div');
+        avatar.className = 'avatar';
+        avatar.textContent = sanitizedName.charAt(0);
+        contactInfo.appendChild(avatar);
+        
+        // 创建联系人详情容器
+        const contactDetails = document.createElement('div');
+        contactDetails.className = 'contact-details';
+        contactInfo.appendChild(contactDetails);
+        
+        // 添加姓名
+        const nameHeading = document.createElement('h4');
+        nameHeading.textContent = sanitizedName;
+        contactDetails.appendChild(nameHeading);
+        
+        // 添加电话
+        const phoneParagraph = document.createElement('p');
+        phoneParagraph.textContent = sanitizedPhone;
+        contactDetails.appendChild(phoneParagraph);
+        
+        // 添加图标容器
+        const iconContainer = document.createElement('div');
+        const phoneIcon = document.createElement('i');
+        phoneIcon.className = 'fas fa-phone';
+        phoneIcon.style.color = 'var(--success)';
+        iconContainer.appendChild(phoneIcon);
+        contactItem.appendChild(iconContainer);
+        
+        this.contactPreview.appendChild(contactItem);
       });
 
-      this.contactPreview.innerHTML = previewHTML;
       this.contactCount.textContent = `${this.contacts.length} 个联系人`;
       this.totalContacts.textContent = this.contacts.length;
       this.validContacts.textContent = this.contacts.length;
