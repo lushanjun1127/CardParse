@@ -227,7 +227,5 @@ class VCardGenerator {
   }
 }
 
-// 导出模块（如果在支持ES6模块的环境中）
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = VCardGenerator;
-}
+// 导出模块（ES6 模块格式）
+export { VCardGenerator };

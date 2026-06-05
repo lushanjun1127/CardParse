@@ -1,0 +1,7 @@
+(js/app.js has been added, but it's a source file, not a build artifact or dependency, so no changes needed to .gitignore)
+
+(index.html, js/ui-controller.js, js/vcard-generator.js are all source files being modified, no build artifacts present)
+
+(current .gitignore is empty and no artifacts detected in changes)
+
+(nothing to ignore)

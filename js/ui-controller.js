@@ -262,3 +262,5 @@ class UIController {
     }
   }
 }
+// 导出模块（ES6 模块格式）
+export { UIController };
