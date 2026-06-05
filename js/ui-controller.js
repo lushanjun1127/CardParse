@@ -1,12 +1,14 @@
 /**
- * UI控制器模块
+ * UI 控制器模块
+ * 负责用户界面的交互和状态管理
  */
+
 class UIController {
   constructor(generator) {
     this.generator = generator;
     this.contacts = [];
     
-    // DOM元素引用
+    // DOM 元素引用
     this.contactInput = document.getElementById('contactInput');
     this.parseBtn = document.getElementById('parseBtn');
     this.vcfParseBtn = document.getElementById('vcfParseBtn');
@@ -23,11 +25,11 @@ class UIController {
     this.notificationText = document.getElementById('notificationText');
     this.vcfOutput = document.getElementById('vcfOutput');
     
-    // 验证DOM元素是否存在
+    // 验证 DOM 元素是否存在
     if (!this.contactInput || !this.parseBtn || !this.vcfParseBtn || 
         !this.clearBtn || !this.downloadBtn || !this.copyBtn || 
         !this.contactPreview || !this.notification || !this.vcfOutput) {
-      throw new Error('UI控制器所需的DOM元素未找到');
+      throw new Error('UI 控制器所需的 DOM 元素未找到');
     }
   }
 
@@ -56,7 +58,7 @@ class UIController {
   }
 
   /**
-   * 处理VCF文件解析操作
+   * 处理 VCF 文件解析操作
    */
   handleVCFParse() {
     try {
@@ -66,20 +68,20 @@ class UIController {
       if (contacts.length > 0) {
         this.contacts = contacts;
         this.updatePreview();
-        this.showNotification(`从VCF文件解析出 ${contacts.length} 个联系人`);
+        this.showNotification(`从 VCF 文件解析出 ${contacts.length} 个联系人`);
         
         // 将解析出的联系人信息填入输入区域
         let contactText = '';
-        contacts.forEach(contact => {
+        for (const contact of contacts) {
           contactText += `${contact.name} ${contact.phone}\n`;
-        });
+        }
         this.contactInput.value = contactText.trim();
       } else {
-        this.showNotification('未能从VCF内容中解析出联系人，请检查格式', 'error');
+        this.showNotification('未能从 VCF 内容中解析出联系人，请检查格式', 'error');
       }
     } catch (error) {
-      console.error('解析VCF内容时发生错误:', error);
-      this.showNotification('解析VCF内容时发生错误，请重试', 'error');
+      console.error('解析 VCF 内容时发生错误:', error);
+      this.showNotification('解析 VCF 内容时发生错误，请重试', 'error');
     }
   }
 
@@ -105,10 +107,10 @@ class UIController {
   handleDownload() {
     try {
       this.generator.downloadVCF(this.contacts);
-      this.showNotification(`已生成 ${this.contacts.length} 个联系人的VCF文件`);
+      this.showNotification(`已生成 ${this.contacts.length} 个联系人的 VCF 文件`);
     } catch (error) {
-      console.error('下载VCF文件时发生错误:', error);
-      this.showNotification(error.message || '下载VCF文件时发生错误', 'error');
+      console.error('下载 VCF 文件时发生错误:', error);
+      this.showNotification(error.message || '下载 VCF 文件时发生错误', 'error');
     }
   }
 
@@ -118,12 +120,12 @@ class UIController {
   async handleCopy() {
     try {
       await this.generator.copyToClipboard(this.contacts);
-      // 安全地更新按钮文本，避免innerHTML
+      // 安全地更新按钮文本，避免 innerHTML
       this.copyText.innerHTML = '';
       const checkIcon = document.createElement('i');
       checkIcon.className = 'fas fa-check';
       this.copyText.appendChild(checkIcon);
-      this.showNotification('VCF内容已复制到剪贴板');
+      this.showNotification('VCF 内容已复制到剪贴板');
       
       setTimeout(() => {
         this.copyText.innerHTML = '';
@@ -132,8 +134,8 @@ class UIController {
         this.copyText.appendChild(copyIcon);
       }, 2000);
     } catch (error) {
-      console.error('复制VCF内容时发生错误:', error);
-      this.showNotification(error.message || '复制VCF内容时发生错误', 'error');
+      console.error('复制 VCF 内容时发生错误:', error);
+      this.showNotification(error.message || '复制 VCF 内容时发生错误', 'error');
     }
   }
 
@@ -144,7 +146,7 @@ class UIController {
     try {
       if (this.contacts.length === 0) {
         // 清空现有内容并添加空状态
-        this.contactPreview.innerHTML = ''; // 清空现有内容
+        this.contactPreview.innerHTML = '';
         
         const emptyStateDiv = document.createElement('div');
         emptyStateDiv.className = 'empty-state';
@@ -170,10 +172,10 @@ class UIController {
       // 清空现有预览内容
       this.contactPreview.innerHTML = '';
       
-      this.contacts.forEach(contact => {
-        // 对显示内容进行XSS防护
-        const sanitizedName = this.escapeHtml(contact.name);
-        const sanitizedPhone = this.escapeHtml(contact.phone);
+      for (const contact of this.contacts) {
+        // 对显示内容进行 XSS 防护
+        const sanitizedName = SecurityUtils.escapeHtml(contact.name);
+        const sanitizedPhone = SecurityUtils.escapeHtml(contact.phone);
         
         // 创建联系人项元素
         const contactItem = document.createElement('div');
@@ -214,7 +216,7 @@ class UIController {
         contactItem.appendChild(iconContainer);
         
         this.contactPreview.appendChild(contactItem);
-      });
+      }
 
       this.contactCount.textContent = `${this.contacts.length} 个联系人`;
       this.totalContacts.textContent = this.contacts.length;
@@ -228,37 +230,27 @@ class UIController {
   }
 
   /**
-   * 转义HTML，防止XSS攻击
-   */
-  escapeHtml(unsafe) {
-    if (typeof unsafe !== 'string') {
-      return '';
-    }
-    return unsafe
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#039;");
-  }
-
-  /**
    * 显示通知
    * @param {string} message - 通知消息
    * @param {string} type - 通知类型 ('success' 或 'error')
    */
   showNotification(message, type = 'success') {
     try {
-      // 对通知消息进行XSS防护
-      const safeMessage = this.escapeHtml(message);
+      // 对通知消息进行 XSS 防护
+      const safeMessage = SecurityUtils.escapeHtml(message);
       this.notificationText.textContent = safeMessage;
       this.notification.className = `notification ${type} show`;
       
       setTimeout(() => {
         this.notification.classList.remove('show');
-      }, 3000);
+      }, AppConfig.NOTIFICATION_DURATION);
     } catch (error) {
       console.error('显示通知时发生错误:', error);
     }
   }
+}
+
+// 导出模块
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = UIController;
 }
