@@ -249,8 +249,5 @@ class UIController {
     }
   }
 }
-
-// 导出模块
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = UIController;
-}
+// 导出模块（ES6 模块格式）
+export { UIController };
